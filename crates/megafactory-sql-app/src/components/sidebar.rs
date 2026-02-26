@@ -48,6 +48,7 @@ pub fn Sidebar() -> impl IntoView {
                 <SidebarLink href="/k8s" icon="server" label="Kubernetes" collapsed=collapsed />
                 <SidebarLink href="/monitoring" icon="activity" label="Monitoring" collapsed=collapsed />
                 <SidebarLink href="/workbench" icon="workbench" label="Workbench" collapsed=collapsed />
+                <SidebarLink href="/configurator" icon="configurator" label="Configurator" collapsed=collapsed />
             </div>
 
             <div class="sidebar-footer">
@@ -85,6 +86,7 @@ fn icon_svg(name: &str) -> &'static str {
         "server" => "K8",
         "activity" => "PM",
         "workbench" => "AW",
+        "configurator" => "CF",
         "plug" => "CN",
         "settings" => "ST",
         _ => "??",
