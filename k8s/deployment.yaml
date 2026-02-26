@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: megafactory-sql
+  namespace: default
+  labels:
+    app: megafactory-sql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: megafactory-sql
+  template:
+    metadata:
+      labels:
+        app: megafactory-sql
+    spec:
+      containers:
+        - name: megafactory-sql
+          image: megafactory-sql:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: MEGAFACTORY_BIND
+              value: "0.0.0.0:3000"
+            - name: MEGADB_URL
+              value: "http://megadb:8080"
+            - name: MEGADB_WS_URL
+              value: "ws://megadb:8080/ws"
+            - name: PROMETHEUS_URL
+              value: "http://prometheus:9090"
+            - name: K8S_NAMESPACE
+              value: "default"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
