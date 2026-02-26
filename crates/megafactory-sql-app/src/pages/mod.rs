@@ -1,3 +1,4 @@
+pub mod configurator;
 pub mod connections;
 pub mod k8s_dashboard;
 pub mod monitoring;

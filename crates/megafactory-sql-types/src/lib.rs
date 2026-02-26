@@ -1,4 +1,5 @@
 pub mod advisor;
+pub mod configurator;
 pub mod connection;
 pub mod explain;
 pub mod k8s;
