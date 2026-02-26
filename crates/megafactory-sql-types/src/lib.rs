@@ -1,3 +1,4 @@
+pub mod advisor;
 pub mod connection;
 pub mod explain;
 pub mod k8s;

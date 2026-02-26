@@ -4,3 +4,4 @@ pub mod monitoring;
 pub mod schema_browser;
 pub mod settings;
 pub mod sql_editor;
+pub mod workbench;

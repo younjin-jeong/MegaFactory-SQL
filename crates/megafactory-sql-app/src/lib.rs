@@ -13,6 +13,7 @@ use leptos_router::{
 use pages::{
     connections::ConnectionsPage, k8s_dashboard::K8sDashboardPage, monitoring::MonitoringPage,
     schema_browser::SchemaBrowserPage, settings::SettingsPage, sql_editor::SqlEditorPage,
+    workbench::WorkbenchPage,
 };
 
 use components::sidebar::Sidebar;
@@ -45,6 +46,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/schema") view=SchemaBrowserPage />
                         <Route path=path!("/k8s") view=K8sDashboardPage />
                         <Route path=path!("/monitoring") view=MonitoringPage />
+                        <Route path=path!("/workbench") view=WorkbenchPage />
                         <Route path=path!("/connections") view=ConnectionsPage />
                         <Route path=path!("/settings") view=SettingsPage />
                     </Routes>
