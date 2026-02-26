@@ -1,0 +1,27 @@
+[package]
+name = "megafactory-sql-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Server binary for MegaFactory SQL (SSR + API proxy)"
+
+[[bin]]
+name = "megafactory-sql-server"
+path = "src/main.rs"
+
+[dependencies]
+megafactory-sql-types.workspace = true
+megafactory-sql-app = { workspace = true, features = ["ssr"] }
+leptos.workspace = true
+leptos_axum.workspace = true
+axum.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+kube.workspace = true
+k8s-openapi.workspace = true

@@ -1,0 +1,76 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/megafactory-sql-types",
+    "crates/megafactory-sql-app",
+    "crates/megafactory-sql-server",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/younjin-jeong/MegaFactory-SQL"
+
+[workspace.dependencies]
+# Shared types
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+
+# Leptos framework
+leptos = { version = "0.8" }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8" }
+leptos_axum = { version = "0.8" }
+
+# Server (axum 0.8 to match leptos_axum 0.8)
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "fs"] }
+
+# Kubernetes (server-only)
+kube = { version = "0.98", features = ["runtime", "derive", "ws"] }
+k8s-openapi = { version = "0.24", features = ["latest"] }
+
+# WASM interop (client-only)
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "HtmlElement", "HtmlDivElement", "HtmlTextAreaElement", "HtmlAnchorElement",
+    "Document", "Window", "Element", "Node",
+    "CssStyleDeclaration", "ScrollBehavior",
+    "WebSocket", "MessageEvent", "CloseEvent", "ErrorEvent",
+    "KeyboardEvent", "EventTarget",
+    "Storage",
+    "Blob", "BlobPropertyBag", "Url",
+    "console",
+] }
+gloo-timers = { version = "0.3", features = ["futures"] }
+
+# Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Misc
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Internal crates
+megafactory-sql-types = { path = "crates/megafactory-sql-types" }
+megafactory-sql-app = { path = "crates/megafactory-sql-app" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"       # Optimize for WASM size
+strip = true
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"

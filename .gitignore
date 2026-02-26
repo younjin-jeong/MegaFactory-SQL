@@ -1,0 +1,24 @@
+# Rust build artifacts
+debug/
+target/
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+
+# WASM / Leptos build artifacts
+site/
+pkg/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
