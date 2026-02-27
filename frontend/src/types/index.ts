@@ -7,3 +7,5 @@ export * from "./explain";
 export * from "./toast";
 export * from "./connection";
 export * from "./advisor";
+export * from "./object-store";
+export * from "./storage-tier";

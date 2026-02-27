@@ -6,6 +6,8 @@ export interface ClusterStatus {
   message: string;
   pods: PodInfo[];
   volumes: VolumeInfo[];
+  nodes: NodeInfo[];
+  services: ServiceInfo[];
 }
 
 export interface PodInfo {
@@ -38,6 +40,40 @@ export interface KedaConfig {
   max_replicas: number;
 }
 
+export interface NodeInfo {
+  name: string;
+  status: string;
+  roles: string[];
+  cpu_capacity: number;
+  memory_capacity_bytes: number;
+  cpu_allocatable: number;
+  memory_allocatable_bytes: number;
+  pod_count: number;
+  kubelet_version: string;
+}
+
+export interface ServiceInfo {
+  name: string;
+  type: string;
+  cluster_ip: string;
+  ports: ServicePort[];
+}
+
+export interface ServicePort {
+  name: string;
+  port: number;
+  target_port: number;
+  node_port?: number;
+}
+
+export interface K8sClusterEvent {
+  type: string;
+  reason: string;
+  message: string;
+  involved_object: string;
+  timestamp: string;
+}
+
 export function podIsReady(pod: PodInfo): boolean {
   return pod.status === "Running";
 }
@@ -65,5 +101,7 @@ export function defaultClusterStatus(): ClusterStatus {
     message: "",
     pods: [],
     volumes: [],
+    nodes: [],
+    services: [],
   };
 }

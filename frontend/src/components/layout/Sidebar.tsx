@@ -1,33 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { loadFromStorage, saveToStorage, STORAGE_KEYS } from "@/lib/storage";
+import { NAV_GROUPS } from "@/lib/nav-config";
 
-const NAV_ITEMS = [
-  { href: "/sql", label: "SQL Editor", icon: ">" },
-  { href: "/schema", label: "Schema Browser", icon: "#" },
-  { href: "/k8s", label: "K8s Dashboard", icon: "K" },
-  { href: "/monitoring", label: "Monitoring", icon: "M" },
-  { href: "/workbench", label: "Workbench", icon: "W" },
-  { href: "/configurator", label: "Configurator", icon: "C" },
-  { href: "/connections", label: "Connections", icon: "@" },
-  { href: "/settings", label: "Settings", icon: "*" },
-];
+type GroupExpandState = Record<string, boolean>;
+
+function buildDefaultExpandState(): GroupExpandState {
+  const state: GroupExpandState = {};
+  for (const group of NAV_GROUPS) {
+    state[group.id] = true;
+  }
+  return state;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [groupState, setGroupState] = useState<GroupExpandState>(
+    buildDefaultExpandState
+  );
 
   useEffect(() => {
     setCollapsed(loadFromStorage(STORAGE_KEYS.SIDEBAR_COLLAPSED, false));
+    setGroupState(
+      loadFromStorage(STORAGE_KEYS.SIDEBAR_GROUPS, buildDefaultExpandState())
+    );
   }, []);
 
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
     saveToStorage(STORAGE_KEYS.SIDEBAR_COLLAPSED, next);
+  };
+
+  const toggleGroup = useCallback(
+    (groupId: string) => {
+      setGroupState((prev) => {
+        const next = { ...prev, [groupId]: !prev[groupId] };
+        saveToStorage(STORAGE_KEYS.SIDEBAR_GROUPS, next);
+        return next;
+      });
+    },
+    []
+  );
+
+  /** Check whether a nav item is active based on the current pathname */
+  const isItemActive = (href: string): boolean => {
+    return pathname === href || (pathname?.startsWith(href + "/") ?? false);
+  };
+
+  /** Check whether any item within a group is active */
+  const isGroupActive = (groupId: string): boolean => {
+    const group = NAV_GROUPS.find((g) => g.id === groupId);
+    if (!group) return false;
+    return group.items.some((item) => isItemActive(item.href));
   };
 
   return (
@@ -62,29 +91,68 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-2 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+        {NAV_GROUPS.map((group) => {
+          const expanded = groupState[group.id] ?? true;
+          const groupActive = isGroupActive(group.id);
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 mx-1 rounded text-sm transition-colors ${
-                collapsed ? "justify-center" : ""
-              }`}
-              style={{
-                backgroundColor: isActive ? "var(--color-bg-hover)" : "transparent",
-                color: isActive ? "var(--color-accent)" : "var(--color-text-secondary)",
-              }}
-              title={collapsed ? item.label : undefined}
-            >
-              <span
-                className="font-mono text-xs w-5 text-center flex-shrink-0"
-                style={{ color: isActive ? "var(--color-accent)" : "var(--color-text-muted)" }}
-              >
-                {item.icon}
-              </span>
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+            <div key={group.id} className="mb-1">
+              {/* Group header — only visible when sidebar is expanded */}
+              {!collapsed && (
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  className="flex items-center justify-between w-full px-3 py-1.5 text-left"
+                  style={{
+                    color: groupActive
+                      ? "var(--color-accent)"
+                      : "var(--color-text-muted)",
+                  }}
+                >
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">
+                    {group.label}
+                  </span>
+                  <span className="text-[10px]">
+                    {expanded ? "\u25BE" : "\u25B8"}
+                  </span>
+                </button>
+              )}
+
+              {/* Group items */}
+              {(collapsed || expanded) &&
+                group.items.map((item) => {
+                  const active = isItemActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2 mx-1 rounded text-sm transition-colors ${
+                        collapsed ? "justify-center" : ""
+                      }`}
+                      style={{
+                        backgroundColor: active
+                          ? "var(--color-bg-hover)"
+                          : "transparent",
+                        color: active
+                          ? "var(--color-accent)"
+                          : "var(--color-text-secondary)",
+                      }}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      <span
+                        className="font-mono text-xs w-5 text-center flex-shrink-0"
+                        style={{
+                          color: active
+                            ? "var(--color-accent)"
+                            : "var(--color-text-muted)",
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                      {!collapsed && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+            </div>
           );
         })}
       </nav>

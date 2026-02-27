@@ -1,10 +1,56 @@
 "use client";
 
 import { useQueryStore } from "@/stores/query-store";
+import { useConnectionStore } from "@/stores/connection-store";
+import { useMegaDBHealth } from "@/lib/api/megadb";
 
 interface EditorToolbarProps {
   onExecute: () => void;
   isRunning: boolean;
+}
+
+/** Small coloured dot indicating connection health. */
+function ConnectionHealthIndicator() {
+  const activeConnection = useConnectionStore((s) => s.activeConnection);
+  const { data, isLoading, isError } = useMegaDBHealth();
+
+  if (!activeConnection) {
+    return (
+      <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+        No connection
+      </span>
+    );
+  }
+
+  let dotColor: string;
+  let label: string;
+
+  if (isLoading) {
+    dotColor = "#888";
+    label = "...";
+  } else if (isError || !data) {
+    dotColor = "#ef4444";
+    label = "Disconnected";
+  } else {
+    dotColor = "#22c55e";
+    label = "Connected";
+  }
+
+  return (
+    <span className="flex items-center gap-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
+      <span
+        style={{
+          display: "inline-block",
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          backgroundColor: dotColor,
+        }}
+      />
+      {label}
+      <span style={{ marginLeft: 2 }}>{activeConnection.name}</span>
+    </span>
+  );
 }
 
 export function EditorToolbar({ onExecute, isRunning }: EditorToolbarProps) {
@@ -33,7 +79,9 @@ export function EditorToolbar({ onExecute, isRunning }: EditorToolbarProps) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        {queryMode === "remote" && <ConnectionHealthIndicator />}
+
         <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
           Engine:
         </span>

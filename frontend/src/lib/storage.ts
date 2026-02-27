@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   QUERY_HISTORY: "megafactory.queryHistory",
   CONNECTIONS: "megafactory.connections",
   SIDEBAR_COLLAPSED: "megafactory.sidebarCollapsed",
+  SIDEBAR_GROUPS: "megafactory.sidebarGroups",
 } as const;
 
 export function loadFromStorage<T>(key: string, fallback: T): T {

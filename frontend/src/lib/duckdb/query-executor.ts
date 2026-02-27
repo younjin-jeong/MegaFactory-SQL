@@ -1,8 +1,21 @@
 import { getDuckDBConnection } from "./instance";
 import { arrowTableToQueryResult } from "./arrow-utils";
 import type { QueryResult } from "@/types/query";
+import type { ConnectionConfig } from "@/types/connection";
 
 export type QueryMode = "local" | "remote";
+
+/**
+ * Derive the proxy endpoint URL from the active connection config.
+ * For now the Axum proxy always lives at /proxy/megadb/query;
+ * this helper exists so callers have a single place to change if
+ * the routing strategy evolves (e.g. per-host proxy paths).
+ */
+export function getRemoteEndpoint(connection: ConnectionConfig | null): string {
+  if (!connection) return "/proxy/megadb/query";
+  // Future: could encode connection.host / connection.http_port into the path
+  return "/proxy/megadb/query";
+}
 
 /**
  * Execute a SQL query either locally (DuckDB-WASM) or remotely (MegaDB via Axum proxy).
@@ -10,7 +23,8 @@ export type QueryMode = "local" | "remote";
 export async function executeQuery(
   sql: string,
   mode: QueryMode,
-  database?: string
+  database?: string,
+  endpoint?: string
 ): Promise<QueryResult> {
   const start = performance.now();
 
@@ -18,7 +32,12 @@ export async function executeQuery(
     if (mode === "local") {
       return await executeDuckDBQuery(sql, start);
     } else {
-      return await executeRemoteQuery(sql, database ?? "megadb", start);
+      return await executeRemoteQuery(
+        sql,
+        database ?? "megadb",
+        start,
+        endpoint ?? "/proxy/megadb/query"
+      );
     }
   } catch (err) {
     const elapsed = Math.round(performance.now() - start);
@@ -50,9 +69,10 @@ async function executeDuckDBQuery(
 async function executeRemoteQuery(
   sql: string,
   database: string,
-  startTime: number
+  startTime: number,
+  endpoint: string = "/proxy/megadb/query"
 ): Promise<QueryResult> {
-  const response = await fetch("/proxy/megadb/query", {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql, database }),

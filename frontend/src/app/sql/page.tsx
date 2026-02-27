@@ -9,8 +9,9 @@ import { ResultTable } from "@/components/query/ResultTable";
 import { QueryHistory } from "@/components/query/QueryHistory";
 import { QueryPlanViewer } from "@/components/query/QueryPlanViewer";
 import { useQueryStore } from "@/stores/query-store";
+import { useConnectionStore } from "@/stores/connection-store";
 import { useToastStore } from "@/stores/toast-store";
-import { executeQuery } from "@/lib/duckdb/query-executor";
+import { executeQuery, getRemoteEndpoint } from "@/lib/duckdb/query-executor";
 import { parseExplainText } from "@/types/explain";
 import type { QueryResult, QueryHistoryEntry } from "@/types/query";
 import type { PlanNode } from "@/types/explain";
@@ -42,6 +43,7 @@ export default function SqlEditorPage() {
   const setTabResult = useQueryStore((s) => s.setTabResult);
   const setTabRunning = useQueryStore((s) => s.setTabRunning);
   const pushHistory = useQueryStore((s) => s.pushHistory);
+  const activeConnection = useConnectionStore((s) => s.activeConnection);
   const addToast = useToastStore((s) => s.addToast);
 
   const [bottomTab, setBottomTab] = useState<BottomTab>("results");
@@ -60,7 +62,12 @@ export default function SqlEditorPage() {
 
     setTabRunning(activeTab.id, true);
 
-    const result: QueryResult = await executeQuery(sql, queryMode);
+    const result: QueryResult = await executeQuery(
+      sql,
+      queryMode,
+      activeConnection?.database,
+      getRemoteEndpoint(activeConnection)
+    );
 
     setTabResult(activeTab.id, result);
 
@@ -68,7 +75,7 @@ export default function SqlEditorPage() {
     const entry: QueryHistoryEntry = {
       id: uuidv4(),
       sql,
-      database: "megadb",
+      database: activeConnection?.database ?? "megadb",
       execution_time_ms: result.execution_time_ms,
       row_count: result.row_count,
       executed_at: new Date().toISOString(),
@@ -97,6 +104,7 @@ export default function SqlEditorPage() {
   }, [
     activeTab,
     queryMode,
+    activeConnection,
     setTabRunning,
     setTabResult,
     pushHistory,
